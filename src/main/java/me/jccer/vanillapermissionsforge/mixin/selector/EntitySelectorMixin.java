@@ -20,7 +20,8 @@ public abstract class EntitySelectorMixin {
             method = "checkPermissions",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraftforge/common/ForgeHooks;canUseEntitySelectors(Lnet/minecraft/commands/SharedSuggestionProvider;)Z"
+                    target = "Lnet/minecraftforge/common/ForgeHooks;canUseEntitySelectors(Lnet/minecraft/commands/SharedSuggestionProvider;)Z",
+                    remap = false
             )
     )
     public boolean addSelectorPermission(boolean original, CommandSourceStack source) {

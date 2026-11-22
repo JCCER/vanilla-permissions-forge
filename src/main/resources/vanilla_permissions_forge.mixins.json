@@ -10,7 +10,18 @@
     "selector.EntityArgumentMixin",
     "selector.GameProfileArgumentMixin",
     "selector.ScoreHolderArgumentMixin",
-    "selector.EntitySelectorMixin"
+    "selector.EntitySelectorMixin",
+    "accessor.ServerGamePacketListenerImplAccessor",
+    "accessor.ServerPlayerGameModeAccessor",
+    "bypass.SpawnProtectionMixin",
+    "bypass.ChatSpeedMixin",
+    "bypass.MoveSpeedMixin",
+    "operatorblocks.OperatorBlockUseMixin",
+    "operatorblocks.OperatorBlockPlaceMixin",
+    "operatorblocks.OperatorBlockBreakMixin",
+    "operatorblocks.StructureBlockViewMixin",
+    "operatorblocks.CommandBlockMinecartViewMixin",
+    "operatorblocks.CommandBlockEditMixin"
   ],
   "injectors": {
     "defaultRequire": 1

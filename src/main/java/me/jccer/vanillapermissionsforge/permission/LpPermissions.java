@@ -87,6 +87,12 @@ public final class LpPermissions {
         return state == Tristate.UNDEFINED ? fallback : state == Tristate.TRUE;
     }
 
+    /** Tri-state check for a player, falling back to the given default when undefined. */
+    public static boolean checkOr(ServerPlayer player, String node, boolean fallback) {
+        Tristate state = check(player, node);
+        return state == Tristate.UNDEFINED ? fallback : state == Tristate.TRUE;
+    }
+
     /** Integer meta value (option) of a player; unset or invalid values are treated as absent. */
     public static OptionalInt metaInt(ServerPlayer player, String key) {
         if (!ensureAvailable()) {
