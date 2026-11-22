@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.tree.CommandNode;
@@ -26,7 +25,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,9 +39,9 @@ import static net.minecraft.commands.arguments.EntityArgument.entities;
 /**
  * Adds datapack-friendly execute subcommands (borrowed from VanillaPermissions, Forge-native):
  * {@code execute (if|unless) permission <entity> <node>}, {@code execute feedback (entity <targets>|
- * silent|console)}, and {@code execute oplevel (entity <targets>|<0-4>)} which lowers the execution
- * context's op level (never raises it). The permission conditional mirrors vanilla's addConditional
- * structure directly, avoiding its private CommandPredicate type (no access transformer needed).
+ * silent|console)}, and {@code execute oplevel (entity <targets>|<0-4>)} which only lowers the
+ * execution context's op level. The permission conditional mirrors vanilla addConditional's
+ * fork+executes structure directly (vanilla's CommandPredicate is private; no access transformer).
  */
 @Mixin(ExecuteCommand.class)
 public abstract class ExecuteCommandMixin {
@@ -71,20 +69,25 @@ public abstract class ExecuteCommandMixin {
     }
 
     private static ArgumentBuilder<CommandSourceStack, ?> permissionConditional(CommandNode<CommandSourceStack> node, ArgumentBuilder<CommandSourceStack, ?> builder, boolean positive) {
-        builder.fork(node, context -> expectPermission(context, positive))
+        // Mirror vanilla addConditional: the fork modifier returns an empty collection when the
+        // condition does not match (or the entity cannot be resolved) instead of throwing, which
+        // would break Brigadier parsing; the terminal executes command throws the conditional error.
+        builder.fork(node, context -> {
+                    try {
+                        boolean has = LpPermissions.check(EntityArgument.getEntity(context, "entity"), getString(context, "permission")) == Tristate.TRUE;
+                        return has == positive ? Collections.singleton(context.getSource()) : Collections.emptyList();
+                    } catch (CommandSyntaxException e) {
+                        return Collections.emptyList();
+                    }
+                })
                 .executes(context -> {
-                    expectPermission(context, positive);
+                    boolean has = LpPermissions.check(EntityArgument.getEntity(context, "entity"), getString(context, "permission")) == Tristate.TRUE;
+                    if (has != positive) {
+                        throw ERROR_PERMISSION_CONDITIONAL_FAILED.create();
+                    }
                     return 1;
                 });
         return builder;
-    }
-
-    private static Collection<CommandSourceStack> expectPermission(CommandContext<CommandSourceStack> context, boolean positive) throws CommandSyntaxException {
-        boolean has = LpPermissions.check(EntityArgument.getEntity(context, "entity"), getString(context, "permission")) == Tristate.TRUE;
-        if (has != positive) {
-            throw ERROR_PERMISSION_CONDITIONAL_FAILED.create();
-        }
-        return Collections.singleton(context.getSource());
     }
 
     @WrapOperation(
