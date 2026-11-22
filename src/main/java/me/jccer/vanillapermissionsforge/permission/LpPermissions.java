@@ -101,11 +101,6 @@ public final class LpPermissions {
         return Tristate.UNDEFINED;
     }
 
-    public static boolean checkOr(net.minecraft.world.entity.Entity entity, String node, boolean fallback) {
-        Tristate state = check(entity, node);
-        return state == Tristate.UNDEFINED ? fallback : state == Tristate.TRUE;
-    }
-
     public static OptionalInt metaInt(ServerPlayer player, String key) {
         if (!ensureAvailable()) {
             return OptionalInt.empty();

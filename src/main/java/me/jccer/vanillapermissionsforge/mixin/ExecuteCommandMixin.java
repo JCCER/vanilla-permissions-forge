@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.tree.CommandNode;
@@ -74,20 +75,22 @@ public abstract class ExecuteCommandMixin {
         // would break Brigadier parsing; the terminal executes command throws the conditional error.
         builder.fork(node, context -> {
                     try {
-                        boolean has = LpPermissions.check(EntityArgument.getEntity(context, "entity"), getString(context, "permission")) == Tristate.TRUE;
-                        return has == positive ? Collections.singleton(context.getSource()) : Collections.emptyList();
+                        return hasPermission(context) == positive ? Collections.singleton(context.getSource()) : Collections.emptyList();
                     } catch (CommandSyntaxException e) {
                         return Collections.emptyList();
                     }
                 })
                 .executes(context -> {
-                    boolean has = LpPermissions.check(EntityArgument.getEntity(context, "entity"), getString(context, "permission")) == Tristate.TRUE;
-                    if (has != positive) {
+                    if (hasPermission(context) != positive) {
                         throw ERROR_PERMISSION_CONDITIONAL_FAILED.create();
                     }
                     return 1;
                 });
         return builder;
+    }
+
+    private static boolean hasPermission(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        return LpPermissions.check(EntityArgument.getEntity(context, "entity"), getString(context, "permission")) == Tristate.TRUE;
     }
 
     @WrapOperation(
