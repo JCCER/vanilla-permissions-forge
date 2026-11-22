@@ -30,7 +30,11 @@
     "nbt.NbtLoadEntityMixin",
     "nbt.NbtQueryMixin",
     "debugstick.DebugStickMixin",
-    "adminbroadcast.AdminBroadcastMixin"
+    "adminbroadcast.AdminBroadcastMixin",
+    "accessor.CommandSourceStackAccessor",
+    "accessor.ServerPlayerAccessor",
+    "PlayerListMixin",
+    "ExecuteCommandMixin"
   ],
   "injectors": {
     "defaultRequire": 1

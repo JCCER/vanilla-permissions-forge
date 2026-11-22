@@ -98,6 +98,20 @@ public final class LpPermissions {
         return state == Tristate.UNDEFINED ? fallback : state == Tristate.TRUE;
     }
 
+    /** Tri-state check for an arbitrary entity; only players have permission data. */
+    public static Tristate check(net.minecraft.world.entity.Entity entity, String node) {
+        if (entity instanceof ServerPlayer player) {
+            return check(player, node);
+        }
+        return Tristate.UNDEFINED;
+    }
+
+    /** Tri-state check for an entity, falling back to the given default when undefined. */
+    public static boolean checkOr(net.minecraft.world.entity.Entity entity, String node, boolean fallback) {
+        Tristate state = check(entity, node);
+        return state == Tristate.UNDEFINED ? fallback : state == Tristate.TRUE;
+    }
+
     /** Integer meta value (option) of a player; unset or invalid values are treated as absent. */
     public static OptionalInt metaInt(ServerPlayer player, String key) {
         if (!ensureAvailable()) {
