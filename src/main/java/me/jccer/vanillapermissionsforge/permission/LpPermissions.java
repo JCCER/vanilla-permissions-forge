@@ -26,6 +26,11 @@ public final class LpPermissions {
 
     private LpPermissions() {}
 
+    /** Whether the LuckPerms provider is available (lazily initialized). */
+    public static boolean isAvailable() {
+        return ensureAvailable();
+    }
+
     private static boolean ensureAvailable() {
         if (available) {
             return true;

@@ -21,7 +21,11 @@
     "operatorblocks.OperatorBlockBreakMixin",
     "operatorblocks.StructureBlockViewMixin",
     "operatorblocks.CommandBlockMinecartViewMixin",
-    "operatorblocks.CommandBlockEditMixin"
+    "operatorblocks.CommandBlockEditMixin",
+    "bypass.WhitelistMixin",
+    "bypass.PlayerLimitMixin",
+    "bypass.ForceGameModeLoginMixin",
+    "bypass.ForceGameModeCommandMixin"
   ],
   "injectors": {
     "defaultRequire": 1
