@@ -12,6 +12,8 @@ import net.minecraft.server.rcon.RconConsoleSource;
 import net.minecraft.world.entity.player.Player;
 import org.slf4j.Logger;
 
+import java.util.OptionalInt;
+
 /**
  * Bridge to the LuckPerms public API with "undefined falls back to vanilla" semantics.
  * LuckPerms is optional: until it is available (or if absent) every check returns UNDEFINED.
@@ -76,6 +78,29 @@ public final class LpPermissions {
             return adapter.getPermissionData(player).checkPermission(node);
         } catch (Throwable t) {
             return Tristate.UNDEFINED;
+        }
+    }
+
+    /** Tri-state check falling back to the given default when undefined. */
+    public static boolean checkOr(CommandSourceStack source, String node, boolean fallback) {
+        Tristate state = check(source, node);
+        return state == Tristate.UNDEFINED ? fallback : state == Tristate.TRUE;
+    }
+
+    /** Integer meta value (option) of a player; unset or invalid values are treated as absent. */
+    public static OptionalInt metaInt(ServerPlayer player, String key) {
+        if (!ensureAvailable()) {
+            return OptionalInt.empty();
+        }
+        try {
+            PlayerAdapter<Player> adapter = LuckPermsProvider.get().getPlayerAdapter(Player.class);
+            String value = adapter.getMetaData(player).getMetaValue(key);
+            if (value == null) {
+                return OptionalInt.empty();
+            }
+            return OptionalInt.of(Integer.parseInt(value.trim()));
+        } catch (Throwable t) {
+            return OptionalInt.empty();
         }
     }
 }

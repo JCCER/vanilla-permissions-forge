@@ -6,7 +6,11 @@
   "refmap": "vanilla_permissions_forge.refmap.json",
   "mixins": [
     "GameModeCommandMixin",
-    "GameModeCommandAccessor"
+    "GameModeCommandAccessor",
+    "selector.EntityArgumentMixin",
+    "selector.GameProfileArgumentMixin",
+    "selector.ScoreHolderArgumentMixin",
+    "selector.EntitySelectorMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -36,7 +36,14 @@ dependencies {
     compileOnly "net.luckperms:api:${lp_api_version}"
     // Forge 47 bundles Mixin 0.8.5; the processor generates the SRG refmap.
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    // MixinExtras (@ModifyExpressionValue etc.), bundled via jar-in-jar.
+    compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixinextras_version}"))
+    implementation(jarJar("io.github.llamalad7:mixinextras-forge:${mixinextras_version}")) {
+        jarJar.ranged(it, "[${mixinextras_version},)")
+    }
 }
+
+jarJar.enable()
 
 // Forge 1.20.1 loads mixin configs from the jar manifest, not mods.toml.
 def mixinConfigAttribute = ['MixinConfigs': 'vanilla_permissions_forge.mixins.json']
@@ -57,6 +64,16 @@ jar {
         ])
     }
     finalizedBy 'reobfJar'
+}
+
+// The shippable -all.jar (jar-in-jar) does not inherit the plain jar's extra inputs.
+tasks.named('jarJar', Jar).configure {
+    from(tasks.named('compileJava').get().temporaryDir) {
+        include 'vanilla_permissions_forge.refmap.json'
+    }
+    manifest {
+        attributes(mixinConfigAttribute)
+    }
 }
 
 processResources {
