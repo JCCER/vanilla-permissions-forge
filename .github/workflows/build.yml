@@ -1,0 +1,71 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vanilla-permissions-forge-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        run: ./gradlew build -x test -Dnet.minecraftforge.gradle.check.certs=false --stacktrace
+
+      - name: Resolve artifact
+        id: artifact
+        run: |
+          JAR=$(ls build/libs/vanilla-permissions-forge-*-all.jar)
+          echo "jar=$JAR" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$JAR")" >> "$GITHUB_OUTPUT"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vanilla-permissions-forge
+          path: ${{ steps.artifact.outputs.jar }}
+          if-no-files-found: error
+
+      - name: Move rolling release tag to this commit
+        run: |
+          git tag -f latest "$GITHUB_SHA"
+          git push -f origin refs/tags/latest
+
+      - name: Publish rolling release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Vanilla Permissions Forge - ${{ steps.artifact.outputs.name }}
+          prerelease: true
+          body: |
+            Automated build of the `main` branch.
+
+            - Commit: ${{ github.sha }}
+            - Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            - Target: Forge 1.20.1-47.4.x, Java 17, LuckPerms (optional)
+
+            Download the `-all.jar` (bundles MixinExtras) into your server's `mods/` folder.
+            This is a rolling pre-release: the tag and asset are replaced on every push.
+          files: ${{ steps.artifact.outputs.jar }}
+          fail_on_unmatched_files: true
