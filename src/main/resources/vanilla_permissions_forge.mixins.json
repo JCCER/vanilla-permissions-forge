@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.jccer.vanillapermissionsforge.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "vanilla_permissions_forge.refmap.json",
+  "mixins": [
+    "GameModeCommandMixin",
+    "GameModeCommandAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

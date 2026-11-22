@@ -1,0 +1,84 @@
+plugins {
+    id 'net.minecraftforge.gradle' version '[6.0.24,6.2)'
+}
+
+version = "${mod_version}+mc${mc_version}"
+group = maven_group
+base { archivesName = archives_base_name }
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+minecraft {
+    mappings channel: 'official', version: mc_version
+    copyIdeResources = true
+
+    runs {
+        server {
+            workingDirectory project.file('run')
+            property 'forge.logging.console.level', 'info'
+            mods {
+                "${mod_id}" {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://repo.lucko.me/' }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${forge_version}"
+    // LuckPerms provides these classes at runtime; soft dependency.
+    compileOnly "net.luckperms:api:${lp_api_version}"
+    // Forge 47 bundles Mixin 0.8.5; the processor generates the SRG refmap.
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+}
+
+// Forge 1.20.1 loads mixin configs from the jar manifest, not mods.toml.
+def mixinConfigAttribute = ['MixinConfigs': 'vanilla_permissions_forge.mixins.json']
+
+jar {
+    // Bundle the SRG refmap produced by the mixin annotation processor.
+    from(tasks.named('compileJava').get().temporaryDir) {
+        include 'vanilla_permissions_forge.refmap.json'
+    }
+    manifest {
+        attributes(mixinConfigAttribute + [
+                'Specification-Title'   : 'vanilla_permissions_forge',
+                'Specification-Vendor'  : 'JCCER',
+                'Specification-Version' : '1',
+                'Implementation-Title'  : project.name,
+                'Implementation-Version': project.version,
+                'Implementation-Vendor' : 'JCCER'
+        ])
+    }
+    finalizedBy 'reobfJar'
+}
+
+processResources {
+    def props = [mod_id: mod_id, file: [jarVersion: project.version]]
+    inputs.properties props
+    filesMatching('META-INF/mods.toml') { expand props }
+}
+
+// Feed FG6's official->SRG tsrg to the mixin AP so the refmap targets SRG names
+// (MixinGradle alone yields an empty refmap under official mappings).
+tasks.named('compileJava') { compile ->
+    def tsrgFile = tasks.named('createMcpToSrg').get().outputs.files.singleFile
+    compile.dependsOn('createMcpToSrg')
+    compile.options.compilerArgs += [
+            "-AreobfTsrgFile=${tsrgFile.canonicalPath}",
+            "-AoutTsrgFile=${compile.temporaryDir}/mixin-generated.tsrg",
+            "-AoutRefMapFile=${compile.temporaryDir}/vanilla_permissions_forge.refmap.json",
+            "-AmappingTypes=tsrg",
+            "-AdefaultObfuscationEnv=searge"
+    ]
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
