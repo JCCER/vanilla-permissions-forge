@@ -1,0 +1,26 @@
+package me.jccer.vanillapermissionsforge.mixin.nbt;
+
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.sugar.Local;
+import me.jccer.vanillapermissionsforge.permission.LpPermissions;
+import me.jccer.vanillapermissionsforge.util.Permission;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+
+@Mixin(EntityType.class)
+public abstract class NbtLoadEntityMixin {
+
+    @ModifyExpressionValue(
+            method = "updateCustomEntityTag",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;isOp(Lcom/mojang/authlib/GameProfile;)Z")
+    )
+    private static boolean addNbtLoadEntity(boolean original, @Local Player player) {
+        if (player instanceof ServerPlayer serverPlayer) {
+            return LpPermissions.checkOr(serverPlayer, Permission.NBT_LOAD_ENTITY, original);
+        }
+        return original;
+    }
+}

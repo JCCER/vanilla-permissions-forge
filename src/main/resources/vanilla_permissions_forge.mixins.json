@@ -25,7 +25,12 @@
     "bypass.WhitelistMixin",
     "bypass.PlayerLimitMixin",
     "bypass.ForceGameModeLoginMixin",
-    "bypass.ForceGameModeCommandMixin"
+    "bypass.ForceGameModeCommandMixin",
+    "nbt.NbtLoadBlockMixin",
+    "nbt.NbtLoadEntityMixin",
+    "nbt.NbtQueryMixin",
+    "debugstick.DebugStickMixin",
+    "adminbroadcast.AdminBroadcastMixin"
   ],
   "injectors": {
     "defaultRequire": 1
